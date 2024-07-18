@@ -7,6 +7,7 @@ from datetime import datetime
 import pytz
 from telegram import Bot
 import asyncio
+from telegram.error import TelegramError
 
 # # Telegram Bot 设置
 # BOT_TOKEN = "YOUR_BOT_TOKEN"
@@ -79,7 +80,7 @@ async def send_telegram_message_async(message):
         await bot.send_message(chat_id=CHAT_ID, text=message)
         tg_status = "Telegram提醒消息发送成功"
         print("温馨提醒：Telegram提醒消息发送成功。")
-    except Exception as e:
+    except TelegramError as e:
         tg_status = f"Telegram提醒消息发送失败，错误码: {e}"
         print(f"警告：Telegram提醒消息发送失败！\n错误码: {e}")
     finally:
@@ -91,46 +92,45 @@ async def send_telegram_message_async(message):
 def send_telegram_message(message):
     asyncio.run(send_telegram_message_async(message))
 
-# 尝试通过SSH恢复PM2进程的函数
-def restore_pm2_processes():
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(**ssh_info)
-        
-        stdin, stdout, stderr = ssh.exec_command('pm2 resurrect')
-        output = stdout.read().decode()
-        error = stderr.read().decode()
-        
-        if error:
-            write_log(f"PM2恢复失败: {error}")
-            print(f"PM2恢复失败: {error}")
-        else:
-            write_log(f"PM2恢复成功: {output}")
-            print(f"PM2恢复成功: {output}")
-        
-        ssh.close()
-    except Exception as e:
-        write_log(f"SSH连接失败: {str(e)}")
-        print(f"SSH连接失败: {str(e)}")
+# 尝试通过SSH恢复PM2进程的函数  
+def restore_pm2_processes():  
+    transport = paramiko.Transport((ssh_info['host'], ssh_info['port']))  
+    try:  
+        transport.connect(username=ssh_info['username'], password=ssh_info['password'])  
+        # 创建SSH通道
+        ssh = paramiko.SSHClient()  
+        ssh._transport = transport  
+        try:    # 执行pm2 resurrect命令
+            stdin, stdout, stderr = ssh.exec_command('/home/neojinx/.npm-global/bin/pm2 resurrect')  
+            print("STDOUT: ", stdout.read().decode())  
+            print("STDERR: ", stderr.read().decode())  
+            stdout.channel.recv_exit_status()  # 等待命令执行完成
+            if stdout.channel.exit_status == 0:
+                write_log("通过SSH执行PM2命令成功")
+                print("温馨提醒：PM2进程恢复成功。")
+            else:
+                write_log(f"通过SSH执行PM2命令时出错，错误信息：{stderr.read().decode()}")
+                print("警告：PM2进程恢复失败！\n错误信息：", stderr.read().decode())
+        except Exception as e:  
+            write_log(f"通过SSH执行PM2命令时出错: {e}")
+            print(f"通过SSH执行命令时出错: {e}")  
+    finally:  
+        ssh.close()  # 关闭SSHClient
+        transport.close()    # 关闭Transport连接
 
 # 尝试通过SSH连接的函数
 def ssh_connect():
     try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(**ssh_info)
-        
-        stdin, stdout, stderr = ssh.exec_command('ls -l')
-        output = stdout.read().decode()
-        
-        write_log("SSH连接成功")
-        print("SSH连接成功")
-        
-        ssh.close()
+        transport = paramiko.Transport((ssh_info['host'], ssh_info['port']))
+        transport.connect(username=ssh_info['username'], password=ssh_info['password'])
+        ssh_status = "SSH连接成功"
+        print("SSH连接成功。")
     except Exception as e:
-        write_log(f"SSH连接失败: {str(e)}")
-        print(f"SSH连接失败: {str(e)}")
+        ssh_status = f"SSH连接失败，错误信息: {e}"
+        print(f"SSH连接失败: {e}")
+    finally:
+        transport.close()
+        write_log(f"{ssh_status}")
 
 # 检查是否为每月的1号
 def is_first_day_of_month():
