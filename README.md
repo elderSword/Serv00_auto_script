@@ -1,4 +1,11 @@
 # Serv00 - 自动续期脚本，Fork自bg8ixz/bg8ixz/Serv00_auto_script
+# Fork该项目主要对TG的消息发送做了修改，原来脚本没成功
+
+# TG消息 [步骤参考](https://blog.mado.us.kg/post/Serv00-jian-kong-bao-huo-%EF%BC%8C-fa-song-tong-zhi-dao-telegram.html)
+
+
+## 原本项目使用请使用下面教程
+
 
 
 ## 当前脚本
@@ -29,7 +36,7 @@
 　　进入domains目录并执行一键脚本：
 ```shell
 cd domains
-curl -O https://raw.githubusercontent.com/curry-he/Serv00_auto_script/master/Serv00-Renew.sh && chmod +x Serv00-Renew.sh && ./Serv00-Renew.sh
+curl -O https://raw.githubusercontent.com/elderSword/Serv00_auto_script/master/Serv00-Renew.sh && chmod +x Serv00-Renew.sh && ./Serv00-Renew.sh
 
 ```
 #### 参考设置图
