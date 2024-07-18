@@ -101,7 +101,7 @@ def restore_pm2_processes():
         ssh = paramiko.SSHClient()  
         ssh._transport = transport  
         try:    # 执行pm2 resurrect命令
-            stdin, stdout, stderr = ssh.exec_command('/home/neojinx/.npm-global/bin/pm2 resurrect')  
+            stdin, stdout, stderr = ssh.exec_command(f'/home/{username}/.npm-global/bin/pm2 resurrect')  
             print("STDOUT: ", stdout.read().decode())  
             print("STDERR: ", stderr.read().decode())  
             stdout.channel.recv_exit_status()  # 等待命令执行完成
